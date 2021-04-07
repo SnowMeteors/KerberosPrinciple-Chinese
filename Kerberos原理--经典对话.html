@@ -1,0 +1,680 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>Kerberos原理--经典对话</title><link href='https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext' rel='stylesheet' type='text/css' /><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+.typora-export .task-list-item input { pointer-events: none; }
+@media screen and (max-width: 500px) {
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; image-orientation: from-image; }
+button, input, select, textarea { color: inherit; font: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 4; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right: 0px; background-color: inherit; }
+.CodeMirror-linenumber { user-select: none; }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; background: 0px 0px; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; -webkit-tap-highlight-color: transparent; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print {
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; font-variant-ligatures: no-common-ligatures; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+  .is-mac table { break-inside: avoid; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+#write.first-line-indent p > .md-image:only-child:not(.md-img-error) img { left: -2em; position: relative; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus, [contenteditable="false"]:active, [contenteditable="false"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) {
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+code { text-align: left; vertical-align: initial; }
+a.md-print-anchor { white-space: pre !important; border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; background: 0px 0px !important; text-decoration: initial !important; text-shadow: initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
+.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; overflow-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none 0s ease 0s; }
+.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="flow"] svg, [lang="mermaid"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+svg[id^="mermaidChart"] { line-height: 1em; }
+mark { background: rgb(255, 255, 0); color: rgb(0, 0, 0); }
+.md-html-inline .md-plain, .md-html-inline strong, mark .md-inline-math, mark strong { color: inherit; }
+mark .md-meta { color: rgb(0, 0, 0); opacity: 0.3 !important; }
+@media print {
+  .typora-export h1, .typora-export h2, .typora-export h3, .typora-export h4, .typora-export h5, .typora-export h6 { break-inside: avoid; }
+}
+
+
+:root {
+    --side-bar-bg-color: #fafafa;
+    --control-text-color: #777;
+}
+
+@include-when-export url(https://fonts.loli.net/css?family=Open+Sans:400italic,700italic,700,400&subset=latin,latin-ext);
+
+/* open-sans-regular - latin-ext_latin */
+  /* open-sans-italic - latin-ext_latin */
+    /* open-sans-700 - latin-ext_latin */
+    /* open-sans-700italic - latin-ext_latin */
+  html {
+    font-size: 16px;
+}
+
+body {
+    font-family: "Open Sans","Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: rgb(51, 51, 51);
+    line-height: 1.6;
+	
+}
+
+#write {
+    max-width: 900px;
+  	margin: 0 auto;
+  	padding: 30px;
+    padding-bottom: 100px;
+}
+
+@media only screen and (min-width: 1400px) {
+	#write {
+		max-width: 1200px;
+	}
+}
+
+@media only screen and (min-width: 1800px) {
+	#write {
+		max-width: 1400px;
+	}
+}
+
+#write > ul:first-child,
+#write > ol:first-child{
+    margin-top: 30px;
+}
+
+a {
+    color: #4183C4;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    position: relative;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-weight: bold;
+    line-height: 1.4;
+    cursor: text;
+}
+h1:hover a.anchor,
+h2:hover a.anchor,
+h3:hover a.anchor,
+h4:hover a.anchor,
+h5:hover a.anchor,
+h6:hover a.anchor {
+    text-decoration: none;
+}
+h1 tt,
+h1 code {
+    font-size: inherit;
+}
+h2 tt,
+h2 code {
+    font-size: inherit;
+}
+h3 tt,
+h3 code {
+    font-size: inherit;
+}
+h4 tt,
+h4 code {
+    font-size: inherit;
+}
+h5 tt,
+h5 code {
+    font-size: inherit;
+}
+h6 tt,
+h6 code {
+    font-size: inherit;
+}
+h1 {
+    font-size: 2.25em;
+    line-height: 1.2;
+    border-bottom: 1px solid #eee;
+}
+h2 {
+    font-size: 1.75em;
+    line-height: 1.225;
+    border-bottom: 1px solid #eee;
+}
+
+/*@media print {
+    .typora-export h1,
+    .typora-export h2 {
+        border-bottom: none;
+        padding-bottom: initial;
+    }
+
+    .typora-export h1::after,
+    .typora-export h2::after {
+        content: "";
+        display: block;
+        height: 100px;
+        margin-top: -96px;
+        border-top: 1px solid #eee;
+    }
+}*/
+
+h3 {
+    font-size: 1.5em;
+    line-height: 1.43;
+}
+h4 {
+    font-size: 1.25em;
+}
+h5 {
+    font-size: 1em;
+}
+h6 {
+   font-size: 1em;
+    color: #777;
+}
+p,
+blockquote,
+ul,
+ol,
+dl,
+table{
+    margin: 0.8em 0;
+}
+li>ol,
+li>ul {
+    margin: 0 0;
+}
+hr {
+    height: 2px;
+    padding: 0;
+    margin: 16px 0;
+    background-color: #e7e7e7;
+    border: 0 none;
+    overflow: hidden;
+    box-sizing: content-box;
+}
+
+li p.first {
+    display: inline-block;
+}
+ul,
+ol {
+    padding-left: 30px;
+}
+ul:first-child,
+ol:first-child {
+    margin-top: 0;
+}
+ul:last-child,
+ol:last-child {
+    margin-bottom: 0;
+}
+blockquote {
+    border-left: 4px solid #dfe2e5;
+    padding: 0 15px;
+    color: #777777;
+}
+blockquote blockquote {
+    padding-right: 0;
+}
+table {
+    padding: 0;
+    word-break: initial;
+}
+table tr {
+    border-top: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 0;
+}
+table tr:nth-child(2n),
+thead {
+    background-color: #f8f8f8;
+}
+table tr th {
+    font-weight: bold;
+    border: 1px solid #dfe2e5;
+    border-bottom: 0;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr td {
+    border: 1px solid #dfe2e5;
+    margin: 0;
+    padding: 6px 13px;
+}
+table tr th:first-child,
+table tr td:first-child {
+    margin-top: 0;
+}
+table tr th:last-child,
+table tr td:last-child {
+    margin-bottom: 0;
+}
+
+.CodeMirror-lines {
+    padding-left: 4px;
+}
+
+.code-tooltip {
+    box-shadow: 0 1px 1px 0 rgba(0,28,36,.3);
+    border-top: 1px solid #eef2f2;
+}
+
+.md-fences,
+code,
+tt {
+    border: 1px solid #e7eaed;
+    background-color: #f8f8f8;
+    border-radius: 3px;
+    padding: 0;
+    padding: 2px 4px 0px 4px;
+    font-size: 0.9em;
+}
+
+code {
+    background-color: #f3f4f4;
+    padding: 0 2px 0 2px;
+}
+
+.md-fences {
+    margin-bottom: 15px;
+    margin-top: 15px;
+    padding-top: 8px;
+    padding-bottom: 6px;
+}
+
+
+.md-task-list-item > input {
+  margin-left: -1.3em;
+}
+
+@media print {
+    html {
+        font-size: 13px;
+    }
+    table,
+    pre {
+        page-break-inside: avoid;
+    }
+    pre {
+        word-wrap: break-word;
+    }
+}
+
+.md-fences {
+	background-color: #f8f8f8;
+}
+#write pre.md-meta-block {
+	padding: 1rem;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: #f7f7f7;
+    border: 0;
+    border-radius: 3px;
+    color: #777777;
+    margin-top: 0 !important;
+}
+
+.mathjax-block>.code-tooltip {
+	bottom: .375rem;
+}
+
+.md-mathjax-midline {
+    background: #fafafa;
+}
+
+#write>h3.md-focus:before{
+	left: -1.5625rem;
+	top: .375rem;
+}
+#write>h4.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h5.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+#write>h6.md-focus:before{
+	left: -1.5625rem;
+	top: .285714286rem;
+}
+.md-image>.md-meta {
+    /*border: 1px solid #ddd;*/
+    border-radius: 3px;
+    padding: 2px 0px 0px 4px;
+    font-size: 0.9em;
+    color: inherit;
+}
+
+.md-tag {
+    color: #a7a7a7;
+    opacity: 1;
+}
+
+.md-toc { 
+    margin-top:20px;
+    padding-bottom:20px;
+}
+
+.sidebar-tabs {
+    border-bottom: none;
+}
+
+#typora-quick-open {
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+}
+
+#typora-quick-open-item {
+    background-color: #FAFAFA;
+    border-color: #FEFEFE #e5e5e5 #e5e5e5 #eee;
+    border-style: solid;
+    border-width: 1px;
+}
+
+/** focus mode */
+.on-focus-mode blockquote {
+    border-left-color: rgba(85, 85, 85, 0.12);
+}
+
+header, .context-menu, .megamenu-content, footer{
+    font-family: "Segoe UI", "Arial", sans-serif;
+}
+
+.file-node-content:hover .file-node-icon,
+.file-node-content:hover .file-node-open-state{
+    visibility: visible;
+}
+
+.mac-seamless-mode #typora-sidebar {
+    background-color: #fafafa;
+    background-color: var(--side-bar-bg-color);
+	background-color: rgba(255,255,255,0);
+}
+
+.md-lang {
+    color: #b4654d;
+}
+
+.html-for-mac .context-menu {
+    --item-hover-bg-color: #E6F0FE;
+}
+
+#md-notification .btn {
+    border: 0;
+}
+
+.dropdown-menu .divider {
+    border-color: #e5e5e5;
+}
+
+.ty-preferences .window-content {
+    background-color: #fafafa;
+}
+
+.ty-preferences .nav-group-item.active {
+    color: white;
+    background: #999;
+}
+
+
+</style>
+</head>
+<body class='typora-export os-windows'>
+<div id='write'  class=''><div style="text-align:center;font-size:32px;font-weight:700">
+Designing an Authentication System:<br>
+a Dialogue in Four Scenes
+</div><p><span>　　版权所有1988，1997麻省理工学院。</span><a href="http://web.mit.edu/kerberos/dialogue.html#license"><span>版权所有</span></a></p><p><span>　　原作者Bill Bryant，1988年2月。</span></p><p><span>　　由Theodore Ts&#39;o转换为HTML格式，1997年2月。在</span><a href="http://web.mit.edu/kerberos/dialogue.html#Afterword"><span>后记</span></a><span>中添加了Kerberos V5的改动。</span></p><h3><a name="摘要" class="md-header-anchor"></a><span>摘要</span></h3><p><span>　　这段对话将不断完善和优化一个叫&quot;Charon&quot;的网络系统。随着对话的推进，雅典娜和欧里庇得斯将一步步发现这个系统存在的问题。当每个问题出现时，他们也想出了不同的应对方案。在对话的最后，他们成功创建出了一个安全可靠的系统。</span></p><h3><a name="目录" class="md-header-anchor"></a><span>目录</span></h3><p><span>　　● </span><a href="#personae"><span>人物简介</span></a>
+<span>　　● </span><a href="#scene1"><span>第一幕</span></a>
+<span>　　● </span><a href="#scene2"><span>第二幕</span></a>
+<span>　　● </span><a href="#scene3"><span>第三幕</span></a>
+<span>　　● </span><a href="#scene4"><span>第四幕</span></a></p><h3><a name="personae" class="md-header-anchor"></a><span>人物简介</span></h3><p><span>　　</span><b><span>雅典娜</span></b><span>　　　　前途无量的系统开发工程师</span></p><p><span>　　</span><b><span>欧里庇得斯</span></b><span>　　经验丰富的开发者</span></p><p><span>　　</span><span style="font-size:13px;font-weight:bold"><span>为了减少工作量，在后面翻译中，将雅典娜和欧里庇得斯简写为:雅姐和欧里。这句话是译者所加。</span></span></p><h3><a name="scene1" class="md-header-anchor"></a><span>第一幕</span></h3><p><span>　　</span><i><span>在一个小工作间里，他们正在相邻的终端上工作着。</span></i>
+<span>　　雅姐：哎，这个分时操作系统真的慢，每个人都来登录，我根本无法工作。</span>
+<span>　　欧里：别对我抱怨呀，我也是个打工人。</span>
+<span>　　雅姐：我觉得当务之急是给每人一台电脑，这样就不必担心速度问题，然后再将所有计算机连接起来，形成一个网络。</span>
+<span>　　欧里：那样的话，差不多要一千台工作站？</span>
+<span>　　雅姐：对</span>
+<span>　　欧里：你不知道普通硬盘有多大吧，根本放不下所有的软件。</span>
+<span>　　雅姐：这样吧，我们可以把软件放到服务器上。当登录到工作站的时候，再通过网络，工作站就可以直接使用任意一台服务器上的软件。这样就可以只使用同一份软件了，如果软件要升级，改动服务器就完事。</span>
+<span>　　欧里：个人文件怎么办？原来我可以登录进分时系统上看我的文件，现在呢？</span>
+<span>　　雅姐：用其他电脑来存，要用的时候，登录到任意一台电脑去取你的文件。</span>
+<span>　　欧里：打印服务呢？未必每个工作站都有一台打印机啊？谁给钱？电子邮件呢？那邮件又怎么发送到工作站上去？</span>
+<span>　　雅姐：啊这！每人一台打印机不现实，可以专门拿一台电脑做打印服务。邮件问题，按部就班，如果你想要邮件，连接邮件服务器，这样问题不就迎刃而解了吗。</span>
+<span>　　欧里：听起来不错，如果是我的话，我会用你的用户名去收发邮件和取文件，然后 嘿嘿。</span>
+<span>　　雅姐：你行吗？</span>
+<span>　　欧里：轻而易举好吧，问题在于，如何让服务器知道我不是你？</span>
+<span>　　雅姐：让我回去好好想想。</span>
+<span>　　欧里：行，等你好消息。</span></p><h3><a name="scene2" class="md-header-anchor"></a><span>第二幕</span></h3><p><span>　　</span><i><span>欧里的办公室，第二天早上，欧里坐在他的桌旁，读着邮件。此时传来，咚咚咚（敲门声），雅姐来了。</span></i>
+<span>　　雅姐：我已经想出办法了。</span>
+<span>　　欧里：坐下说。</span>
+<span>　　　　　</span><i><span>雅姐坐下</span></i>
+<span>　　雅姐：在我说之前，我们先制定一个约定，如何？</span>
+<span>　　欧里：什么约定？</span>
+<span>　　雅姐：如果我想收发邮件，我就必须连接邮件服务器。我的想法是，我不直接连接它。我专门用一个程序去连接，来收发邮件。我下达什么命令，程序就执行什么命令。此程序就代表我做事情，这样可以不？</span>
+<span>　　欧里：没问题。</span>
+<span>　　雅姐：我重新阐述一遍我们的问题，在一个开放的网络中，服务器必须能验证服务对象的身份，即如果我登录邮件服务器，它必须知道是我，而不是你。</span>
+<span>　　欧里：没错。</span>
+<span>　　雅姐：简单的办法，就是登录服务器时，必须输密码。这样就能证明谁是谁了。</span>
+<span>　　欧里：确实简单，但在那样的系统，每台服务器都必须存你的密码。假设有一千个用户，每台服务器就要存一千个密码。如果你要改密码，每台服务器对应的密码也要改。我希望这不是你的最终解决方案。</span>
+<span>　　雅姐：当然不是，听我说，用户和服务器都有属于自己的密码。当然，它们也知道自己的密码。有一个认证服务器知道所有的密码，它把密码单独放在中央数据库中。</span>
+<span>　　欧里：这个认证服务器有名字吗？</span>
+<span>　　雅姐：没想好，你想一个吧。</span>
+<span>　　欧里：冥河摆渡人叫啥来着？</span>
+<span>　　雅姐：Charon（卡戎）？</span>
+<span>　　欧里：是他，除非你能证明你的身份，不然他不会带你过河。</span>
+<span>　　雅姐：别扯淡了，你不会想改写希腊神话吧。Charon才不关心你的身份，他只在乎你死透没。</span>
+<span>　　欧里：你有更好的名字吗？</span>
+<span>　　雅姐陷入了沉思，几分钟后</span>
+<span>　　雅姐：没有，真的没有。</span>
+<span>　　欧里：认证服务器就叫&quot;Charon&quot;吧。</span>
+<span>　　雅姐：是时候描述这个系统了。</span></p><p><span>　　　　　比如我要用邮件服务，那么在我的系统里面，只有你通过了Charon的认证才能使用服务。而且在认证之前，你必须告诉Charon你要使用哪一个服务。比如邮件服务，你就必须告诉它，我要使用邮件服务。</span></p><p><span>　　　　　Charon让你提供密码以此来证明身份，它把你提供的密码和数据库中的密码相比较。如果相等，通过认证。</span></p><p><span>　　　　　之后Charon告诉你邮件服务的密码，你就可以使用此密码让邮件服务相信你通过了认证。</span></p><p><span>　　　　　问题在于，Charon不能直接给你密码。下次你就会直接使用此密码，来使用邮件服务，从而绕过了Charon的认证。当然你还可以假装某人使用邮件服务。</span></p><p><span>　　　　　基于以上考虑，Charon取而代之的是给你一张邮件服务的&quot;票&quot;，此票包含了你的用户名，并且已被邮件服务的密码加密。</span></p><p><span>　　　　　拿到票后，你把此票给邮件服务，以此来证明你的身份。</span></p><p><span>　　　　　邮件服务用自己的密码解密，如果能成功解出，它会得到你的用户名。</span></p><p><span>　　　　　它把此用户名和用票人用户名相比较。如果相等，验证通过，你可以收发邮件了。</span></p><p><span>　　　　　你觉得怎么样？</span></p><p><span>　　欧里：我有一些疑问。</span>
+<span>　　雅姐：我就知道，说吧。</span>
+<span>　　欧里：邮件服务在解密时，如何判断票是否正确解密？</span>
+<span>　　雅姐：我不知道。</span>
+<span>　　欧里：你应该在票里包含有服务的名字。当成功解密的时候，它就可以通过能否在票中找到自已的名字，来判断解密是否正确。</span>
+<span>　　雅姐：太棒了，票应该是这个样子吧。</span></p><p><span>　　　　　</span><i><span>(她在纸上潦草的写下以下内容)</span></i></p><p><span>　　　　　</span><b style="font-size:14px"><span>票 - {用户名:服务名}</span></b></p><p><span>　　欧里：票就只包含用户名和服务名？</span>
+<span>　　雅姐：是的，并且还被服务的密码加密。</span>
+<span>　　欧里：我不觉得这样，就能让票足够安全。</span>
+<span>　　雅姐：什么意思？</span>
+<span>　　欧里：让我们假设一下，你向Charon请求一张邮件服务的票。Charon准备了一张写上你的名字&quot;雅姐&quot;的票。如果票从Charon传给你的过程中我拷贝了一份。然后我又假装我的名字是&quot;雅姐&quot;，我再把偷来的票发给邮件服务器，它解密后，票里的用户名和用票人用户名相匹配。我就可以得到你的邮件了。</span>
+<span>　　雅姐：这......</span>
+<span>　　欧里：我有一个办法也许能解决此问题，Charon应该在票中包含更多的信息，比如用户的IP地址，这样就更加安全了。</span></p><p><span>　　　　　假设现在我偷了你的票，票中包含了你的IP地址。我假装是你，再把偷来的票给邮件服务器，它解密后，只能匹配上用户名，匹配不上IP地址。验证失败，因为明显是偷来的。</span></p><p><span>　　雅姐：nb，nb!我怎么就没想到。</span>
+<span>　　欧里：哈哈，这就是我要表达的意思。</span>
+<span>　　雅姐：那票就应该这样。</span></p><p><span>　　　　　</span><i><span>她在黑板上潦草地写着</span></i></p><p><span>　　 　　   </span><b style="font-size:14px"><span>票 - {用户名:IP地址:服务名}</span></b></p><p><span>　    雅姐：我迫不及待的想看Charon系统是怎么工作。</span>
+<span>　    欧里：别慌，这个系统还有一些问题。</span>
+<span>　    雅姐：</span><i><span>(雅姐向前探了探身子)</span></i><span> 别买关子了，快说说。</span>
+<span>　    欧里：我每次使用邮件服务，就要取一次票，要是取票次数多了，真的烦。这样的话，说实话，你的系统真不咋地。</span>
+<span>　    雅姐：你可以重复使用邮件服务的票。比如，当你使用邮件客户程序时，就已经拷贝了一张票给邮件服务。</span>
+<span>　    欧里：还有一个问题，我每次使用还没有得到票的服务前，都必须给Charon我的密码。比如我使用邮件服务，就要输入一次。使用文件服务，又要输入一次。打印服务，还要输入一次。这就是缺陷，懂我意思吧。</span>
+<span>　    雅姐：懂。</span>
+<span>　    欧里：更糟糕的事也许是这个，想想看，每次向Charon认证的时候，就会在网络中明文传输你的密码。不法分子就可以监听网络流量获取密码。如果我得到了你的密码，我就可以使用你的名字来使用任何服务。</span><i><span>雅姐叹了口气。</span></i>
+<span>　    雅姐：确实是个严重的问题，搞不好要重新设计系统了。</span></p><h3><a name="scene3" class="md-header-anchor"></a><span>第三幕</span></h3><p><span>　　</span><i><span>第二天早上，雅姐在咖啡店遇见了欧里。在他倒咖啡的时候，她拍了拍他的肩膀。</span></i></p><p><span>　　</span><i><span>他们走向咖啡机</span></i></p><p><span>　　雅姐：我想出了一个新的Charon版本来解决我们的问题。</span>
+<span>　　欧里：我去，这么快</span>
+<span>　　雅姐：为了解决问题，昨晚我彻夜未眠。</span>
+<span>　　欧里：去那边的会议室谈吧。</span>
+<span>　　雅姐：走。</span></p><p><span>　　</span><i><span>他们进了会议室</span></i></p><p><span>　　雅姐：下面我会说明如何解决问题。</span></p><p><span>　　　　　</span><i><span>雅姐清了清嗓子</span></i></p><p><span>　　雅姐：第一条：用户只需输一次密码，意味着每当需要使用新的服务时，不必再输入密码。第二条：密码不能明文传输。</span>
+<span>　　欧里：好的</span>
+<span>　　雅姐：我进一步解释第一条：用户只需输入一次密码。我创造了一个新的服务，叫做&quot;票据授权&quot;服务。它会取代Charon的发票功能。当然你也必须通过Charon的验证才能使用。有了票据授权服务给你的票，你就可以使用任何服务了。</span></p><p><span>　　　　　票据授权服务也只是Charon的另一个功能，理所当然它也能读取数据库。</span></p><p><span>　　　　　现在，认证系统应该是这样工作的：你使用一个叫</span><i><span>kinit</span></i><span>的程序去连接Charon，然后通过了Charon的验证，这样</span><i><span>kinit</span></i><span>就得到了一张票据授权票。</span></p><p><span>　　　　　现在你想使用邮件服务，然而还没有邮件服务的票，所以你使用&quot;票据授权&quot;票去取邮件服务的票。至此你将不再使用密码去申请一张新票了。</span></p><p><span>　　欧里：那我每次使用其他服务的时候，我还要去取一张&quot;票据授权&quot;票吗？</span>
+<span>　　雅姐：不用，上次你我已经同意能重复使用票。只要你有&quot;票据授权&quot;票，随便使用任何服务。</span>
+<span>　　欧里：哇，棒啊，再也不用重复申请票了。</span>
+<span>　　雅姐：不妙吗？</span>
+<span>　　欧里：妙啊！真是妙蛙种子吃着妙脆角妙进了米奇妙妙屋，妙到家了。那密码明文传输呢？</span>
+<span>　　雅姐：也很简单，当你连接Charon去申请一张票据授权票时，感觉上是密码明文传输，实际上不是这样的。</span></p><p><span>　　　　　你用</span><i><span>kinit</span></i><span>程序取得授权时，不再发送密码，而只发送你的用户名。</span></p><p><span>　　欧里：可以。</span>
+<span>　　雅姐：Charon用此用户名查你的密码，之后Charon会制作一个包含票据授权票的数据包，并且用你的密码加密此数据包。</span></p><p><span>　　　　　然后你的电脑接收到此数据包，你输入你的密码，</span><i><span>Kinit</span></i><span>用你输的密码进行解密。如果解密成功，说明你已通过Charon验证，就能获得票据授权票，就能用此票去取其他票。</span></p><p><span>　　　　　这奇思妙想怎么样？</span></p><p><span>　　欧里：让我仔细思考一下，就你刚刚说所的，只需要我认证一次，挺不错的。之后Charon会不知不觉的给我票，简直天衣无缝啊。其实有个问题，重用的票，因其本身的设计缺陷。会导致安全问题。</span>
+<span>　　雅姐：什么意思？</span>
+<span>　　欧里：假设这么一个场景，你获得了邮费服务票，打印服务票，和文件服务票。但当你注销时，却无意留下了这些票。</span></p><p><span>　　　　　现在我用你的名字登录上去并且找到了这些票，既然那些票上是你的名字，我就可以随意的取你的邮件，动你的文件。归根结底，是你的疏忽而造成的。</span></p><p><span>　　　　　甚至我还可以把这些票拷走，永远的使用它们。</span></p><p><span>　　雅姐：也很好解决，我们可以写一个程序，在用户注销时把票销毁掉，这些票再也不能被用。</span>
+<span>　　欧里：那么你的系统又需要一个票据销毁程序，你指望用户每次注销时使用你的程序，既不现实，又愚蠢。即使能实现，看以下情况：</span></p><p><span>　　　　　我有一个能监听网络并且能偷票的程序，假设你是我的目标。我等你上线后，立即把票偷过来。</span></p><p><span>　　　　　等你注销并离开后，我把我的IP改成你的，这样电脑就会以为我是你，我有你的票，用户名，IP地址，我就能用这些票使用你的服务。</span></p><p><span>　　　　　到那时，你销毁票也已经无济于事了。这些偷来的票我能随时随地的用。因为你的这些票并没有限制使用次数，和限制使用时间。</span></p><p><span>　　雅姐：我懂你意思了，票不能永远合法，这样有安全问题。也许可以给每张票设一个有效期。</span>
+<span>　　欧里：是的，我想票需要再加两个信息：票能使用多久和Charon发票时间，所以票就应该是这样:</span></p><p><span>　　　　　</span><i><span>欧里走到黑板前写下以下内容:</span></i></p><p><span>　　　　　</span><b style="font-size:14px"><span>票 - {用户名:IP地址:服务名:有效期:时间戳}</span></b></p><p><span>　　欧里：现在当服务解密时，它会检查票的用户名和IP地址，是否与发送者匹配，然后再用有效期和时间戳检查票是否有效。</span>
+<span>　　雅姐：那票一般有效期是多久？</span>
+<span>　　欧里：差不多8小时吧。</span>
+<span>　　雅姐：那如果我用电脑超过8小时，所有的票就会失效，也包括票据授权票。岂不是我要重新到Charon验证。</span>
+<span>　　欧里：是不是有点不合理？</span>
+<span>　　雅姐：不会，就这样吧。我问你个问题，假设我偷了你的票。</span>
+<span>　　欧里：</span><i><span>(眨了眨眼睛)</span></i><span>，不会吧，不会吧，不会你真的那样做吧。</span>
+<span>　　雅姐：额，我只是和你讨论。假设我偷了你的票，而你两小时后预约了医生或者有课，你离开前并销毁了你的票。</span></p><p><span>　　　　　所以票还有6小时的有效期，我有足够的时间拿这些票搞事情。</span></p><p><span>　　　　　即使时间戳加上了，只要在失效前使用...</span></p><p><span>　　欧里：确实</span>
+<span>　　雅姐：我们遇上了大问题了。(</span><i><span>她叹了口气</span></i><span>)</span>
+<span>　　 　  　 </span><i><span>双方沉默了一会儿</span></i>
+<span>　    欧里：某人可能今晚又要失眠了，再喝点咖啡吧？</span>
+<span>　    雅姐：满上。</span></p><h3><a name="scene4" class="md-header-anchor"></a><span>第四幕</span></h3><p><span>　　</span><i><span>第二天一大早，雅姐就来敲欧里办公室的门。</span></i>
+<span>　　欧里：我去，你有黑眼圈了。</span>
+<span>　　雅姐：昨晚，又是一个漫漫长夜。</span>
+<span>　　欧里：想出办法了吗？</span>
+<span>　　雅姐：必须的</span>
+<span>　　欧里：请坐</span>
+<span>　　　　　</span><i><span>雅姐坐下</span></i>
+<span>　　雅姐：按照习惯，再次回顾一下问题。票在8小时内可以重用，但如果某人偷了票，在失效前使用，我们束手无策。</span>
+<span>　　欧里：确实如此。</span>
+<span>　　雅姐：如果票不能重复使用，就能解决此问题。</span>
+<span>　　欧里：这不又和以前一样，用一次新服务取一次新票。</span>
+<span>　　雅姐：是的，虽然这个办法属实不咋滴。(</span><i><span>停顿</span></i><span>)，怎么说呢？(</span><i><span>她思考了一会</span></i><span>)</span></p><p><span>　　　　　有了，再屡一遍问题，网络服务必须证明票上的人名就是用票者。</span></p><p><span>　　　　　让我顺着认证过程再走一遍，看能否想出解决办法。</span></p><p><span>　　　　　现在我用程序去访问一个服务，那么需发送三样东西给服务器，分别是:我的用户名，我的IP地址，票。</span></p><p><span>　　　　　此票包含我的用户名，我的IP地址，有效期，时间戳。而这些信息都被服务的密码加密了。</span></p><p><span>　　　　　对此提出以下问题：</span></p><p><span>　　　　     ● 票能否被解密？</span>
+<span>　　　　     ● 票是否在有效期？</span>
+<span>　　　 　    ● 票上的用户名和IP地址是否和用票者的匹配？</span></p><p><span>　　　 　   上述问题能说明什么？第一个问题，如果票不能被解密，说明票不是Charon发放的。因为只有真正的Charon和服务知道服务的密码，Charon用此加密，服务用此解密。如果解密失败，说明有人伪造了票。</span></p><p><span>　　　 　   第二个问题，如果票过期，理所当然是不能被服务接受的。说明有可能使用了旧票或者有人偷票。</span></p><p><span>　　　 　   第三个问题，如果不匹配，票肯定被偷了。</span></p><p><span>　　　 　   再继续讨论第三个问题，如果匹配能说明什么？什么也不能说明，因为偷票的人可以改变用户名和IP地址。还有我昨天所说的，票可以在有效期内被盗用，因为服务不能确定发票者是不是本人。</span></p><p><span>　　　 　   之所以服务无法确定，是因为没有和用户有个接头暗号。这样看，假如我正在Elsinore(埃尔西诺:一款角色扮演游戏)，哈姆雷特中的城堡值勤。此时你要和我换班，那么你必须提供正确的暗号，不然我不会和你换班。而这个暗号是某人为所有值勤的人设定的。</span></p><p><span>　　　 　   昨晚我就在想，为什么Charon不这样搞呢？它发一份</span><b><span>会话密钥</span></b><span>给服务，同时发一份给用户。当服务收到用户的票时，它可以用此口令验证用户的合法性。</span></p><p><span>　    欧里：等等，Charon怎么同时发两份密钥？</span>
+<span>　　雅姐：持票者从Charon的回应得到密钥，像这样子：</span></p><p><span>　　　　　</span><i><span>她在黑板上潦草地写着</span></i></p><p><span>　　　　　</span><b style="font-size:14px"><span>Charon的回应 - [密钥 | 票]</span></b></p><p><span>　　　　　服务的密钥也会被包含在票中，所以当服务解密时就能得到密钥。票就像这样:</span></p><p><span>　　　　　</span><b style="font-size:14px"><span>票 - {密钥:用户名:IP地址:服务名:有效期:时间戳}</span></b></p><p><span>　　　　　当你请求一个服务时，客户端会生成一个&quot;认证器&quot;，它包含了你的用户名和IP地址。这些信息被你请求票据时得到的密钥所加密。</span></p><p><span>　　　　　</span><b style="font-size:14px"><span>认证器 - {用户名:IP地址} 被密钥加密</span></b></p><p><span>　　　　　生成认证器后，客户端把它和票发送给服务，因为服务没有密钥，所以无法解开认证器。而票包含了密钥，理所当然服务先解开票。</span></p><p><span>　　　　　解开票后，服务会得到以下信息：</span></p><p><span>　　　　　 ● 票的有效期和时间戳</span>
+<span>　　　　     ● 票拥有者的用户名</span>
+<span>　　　 　    ● 票拥有者的IP地址</span>
+<span>　　　 　    ● 密钥</span></p><p><span>　　　 　   服务先检查票是否过期，如果没有，接下来使用密钥解密认证器。如果成功解密，将得到用户名和IP地址。最后服务用票里的用户名和IP地址，与解密后的信息去匹配。匹配成功，服务确定用票者就是本人。</span></p><p><span>　　　　　</span><i><span>雅姐停顿了一会，喝口咖啡，清了清嗓子。</span></i></p><p><span>　　　　　我认为这种验证机制解决了盗用问题。</span></p><p><span>　　欧里：也许。但我想。。。攻击这个系统，我要有认证器。 </span>
+<span>　　雅姐：别忘了你还得有票，没有票，认证器就变得一文不值。解开票后才能解开认证器。</span>
+<span>　　欧里：行，对了，客户端请求服务时，会把认证器和票同时发送给它？</span>
+<span>　　雅姐：对啊。</span>
+<span>　　欧里：这样的话，我可以写个程序，偷走票和认证器，和前面一样改个用户名和IP地址并在失效前使用，不也一样的吗？</span>
+<span>　　雅姐：</span><i><span>(咬了咬她的嘴唇)</span></i><span>，无语了。</span>
+<span>　　欧里：别沮丧，票能重用，又没说认证器能重用，把认证器设计成只能用一次就行了。</span>
+<span>　　雅姐：对啊，真票和认证器永远比你偷过来的先到服务端。如果认证器只能用一次，偷的那份就废了。</span></p><p><span>　　　　　现在要做的就是让认证器只能使用一次。</span></p><p><span>　　欧里：是的，我们可以把有效期和时间戳放在上面。假设每个验证最多2分钟的有效期。认证器再标上当前时间，把它和票一起发给服务。</span></p><p><span>　　　　　服务器收到了票和认证器，它解开认证器，检查认证器是否过期。如果没有，其他验证也通过的话，服务器认为你通过了验证。</span></p><p><span>　　　　　假设我从网络上偷了它们，还要在两分钟之内改变我的IP地址和用户名。基本不可能，除非。。。</span></p><p><span>　　　　　其实有个潜在问题，如果我不偷认证器和票了，我直接偷一份Charon给你票证时，收到的响应数据包。</span></p><p><span>　　　　　这个数据包有两个密钥在里面：一个是你的，一个是服务的。服务的密钥我拿不到，你的呢？</span></p><p><span>　　　　　如果我拿到了密钥，我就能自己构造认证器，再次攻破你的系统。</span></p><p><span>　　雅姐：昨晚我想过这个问题，其实这是不可能发生的。</span></p><p><span>　　　　　假设你坐在电脑前，用</span><i><span>kinit</span></i><span>程序去申请票据授权票，然后你输入用户名，之后</span><i><span>kinit</span></i><span>把它发送给Charon。</span></p><p><span>　　　　　Charon用你的用户名查找你的密码，然后生成一张票据授权票。之后Charon生成一个你和服务共享的密钥。Charon将一份密钥放进票里，一份放在你即将收到的数据包里。别忘了，在发送此数据包之前，Charon会用你的密码加密这个数据包。</span></p><p><span>　　　　　即使在Charon发包的过程中，有人偷取到了，不知道你的密码也毫无作用，所以没人能窃取密钥。</span></p><p><span>　　　　　</span><i><span>Kinit</span></i><span>收到数据包，提示你输入密码，如果正确，解开数据包，你将获得密钥。</span></p><p><span>　　　　　下面是</span><i><span>kinit</span></i><span>的工作方式，你想使用邮件服务，</span><i><span>Kinit</span></i><span>便尝试查找邮件服务票，自然没有找到(因为你之前没有取过邮件)。客户端用票据授权票去申请邮件服务票。</span></p><p><span>　　　　　客户端会生成一个认证器，里面的信息被你请求票据时的密钥所加密。然后客户端会将认证器，票据授权票，你的用户名，你的IP地址，邮件服务名发送给Charon。</span></p><p><span>　　　　　票据授权服务收到这些东西后，如果通过了认证，票据授权服务将得到那个和你共享的密钥。现在票据授权服务将给你一张邮件服务票，在此过程中，生成一个新的密钥供你和邮件服务共享。</span></p><p><span>　　　　　票据授权服务把这些东西打包发给你的电脑，数据包包含了票和邮件服务密钥。注意在发包之前，数据包已被密钥加密。</span></p><p><span>　　　　　假设数据包在网络传输中，被某人复制了。很不幸的是此数据包被加密的。而只有你和票据授权服务知道密钥。所以他无法解密数据包，也无法得到邮件服务密钥。我觉得这是个非常安全的系统，你觉得呢？</span></p><p><span>　　欧里：也许吧。</span>
+<span>　　雅姐：也许！你就只会说这个！</span>
+<span>　　欧里：(</span><i><span>大笑</span></i><span>)，别在意啊。你知道我的说话方式。我相信你昨天确实想了一宿。</span>
+<span>　　雅姐：哼！</span>
+<span>　　欧里：好吧，其实昨天我也想了大半夜，实际上这个系统，解决了我昨晚想的问题：身份相互验证的问题。</span></p><p><span>　　　　　</span><i><span>稍顿</span></i></p><p><span>　　　　　介意我说几分钟吗？</span></p><p><span>　　雅姐：</span><i><span>(有点冷淡)</span></i><span>请便。</span>
+<span>　　欧里：谢谢。(</span><i><span>欧里清了清嗓子</span></i><span>)，昨晚，其实我就想到了密钥与认证器，之后我在想其中是否有漏洞。果不其然，我发现了一个非常严重的问题。我将通过下面的场景具体说明。</span></p><p><span>　　　　　假设你现在准备离职，于是使用打印机打印下次的求职信。</span></p><p><span>　　　　　你下达了打印命令，这个命令去取打印服务票，此票会回到打印服务器上。不出意外的话，这是正确的流程。实际上，你也不知道请求是不是发到了正确的打印机上。</span></p><p><span>　　　　　假设某个黑客　-- 比如你的老板　-- 改变了系统，把你的请求发送到他办公室的打印机。打印服务根本不关心票和票的内容，于是它告诉你的电脑，我已准备打印你的文件。这样你的求职信就会被你老板得到。</span></p><p><span>　　　　　我举这个例子，是想说明，如果没有会话密钥和认证器，Charon可以保护服务不受假冒用户的攻击，但不能保护用户不受假冒服务的攻击。所以在发这些敏感信息之前，系统必须要让客户端和服务器</span><b><span>相互认证</span></b><span>。</span></p><p><span>　　　　　会话密钥完美的解决了此问题，让我们回到刚刚的场景。我想要打印程序确认它发送的服务是否是正确的。</span></p><p><span>　　　　　使用打印服务时，假设我得到了打印服务票和密钥。客户端程序使用此密钥创建了一个认证器，之后将认证器和票发给&quot;指定的&quot;打印服务器。注意客户端此时还没发打印文件，它现在等待打印服务器的响应。</span></p><p><span>　　　　　真的服务收到票和认证器，解开票获得密钥，然后使用此密钥解开认证器。等它检查完所有的认证后，你就通过了它的验证了。</span></p><p><span>　　　　　现在打印服务器准备了一个响应包来证明自己的身份，它用密钥加密了响应包，并把包发送给等待中的客户端。</span></p><p><span>　　　　　客户端收到响应包后用密钥解密，如果成功，将会得到打印服务器正确的响应信息，客户端就知道这个打印服务器是合法的。此时客户端将文件发给打印服务。</span></p><p><span>　　　　　假设我的老板又像上次那样假冒打印服务，客户端将票和认证器发给它并等待响应，而假冒的打印服务是无法生成正确的响应的，因为它无法解开票并得到密钥。之后客户端没有得到正确的响应，放弃等待，退出打印服务。虽然打印失败了，但也比我老板得到我的求职信强。</span></p><p><span>　　　　　我想Charon认证系统已经坚不可摧了。</span></p><p><span>　　雅姐：可能吧，但不管怎么样，我真心不觉得Charon这个名字好听。</span>
+<span>　　欧里：你什么时候又不喜欢了？</span>
+<span>　　雅姐：我就从来没喜欢过好吧，因为这个名字没含义，有次我和我的叔叔Hades(哈迪斯)讨论过这个，他说不如和守他家大门的三头狗一样的名字。</span>
+<span>　　欧里：你是说叫&quot;Cerberus&quot;。</span>
+<span>　　雅姐：你在说什么哦。</span>
+<span>　　欧里：难道不是这个名字吗？</span>
+<span>　　雅姐：是叫&quot;Kerberos&quot;，&#39;K&#39;开头的&quot;Kerberos&quot;。</span>
+<span>　　欧里：好好好，别发火，我同意这个名字。再见，Charon，欢迎，Kerberos。</span></p><h3><a name="后记" class="md-header-anchor"></a><span>后记</span></h3><p><span>　　这篇对话写于1988年，是为了帮助读者理解Kerberos V4工作原理，即使放到现在，也不过时。</span></p><p><span>　　当我把这篇文章转成HTML的时候，我惊讶的发现这个文档对Kerberos V5仍然非常有用。虽然很多东西改变了，但核心内容是没有变的。实际上，Kerberos V5与对话中的&quot;Kerberos&quot;描述，只有两处改动。</span></p><p><span>　　第一个改动是，发现即使认证器只有五分钟的有效期，在此时间段内，如果有人使用自动偷票和认证器程序，依然无法防止他们重用。</span></p><p><span>　　在Kerberos V5中，认证器实现了真正的只能使用一次，这一功劳归功于&quot;重用缓冲区&quot;。它会将最近提交的认证器信息发送给服务器。如果攻击者试图偷取并重用认证器，&quot;重用缓冲区&quot;会发现认证器已经用过了。</span></p><p><span>　　第二个改动是，Kerberos发给kinit服务票时，不再使用用户密码加密。票已经被票据授权服务的密钥加密。所以没必要再用用户密码加密一次。(而对Kerberos的其他响应，如密钥，它仍然是用用户的密码加密的)。</span></p><p><span>　　票据授权服务(TGS)协议也发生了改动，票据授权票也不再被票据授权服务的密钥加密。因为它所包含的票已被对应服务的密钥加密。举例来说，Kerberos V4的包如下所示：</span></p><p><span>　　</span><b style="font-size:14px"><span>KDC_REPLY = {TICKET, client, server, K_session}K_user</span></b></p><p><span>　　其中{}中的内容被K_user加密，并且</span></p><p><span>　　</span><b style="font-size:14px"><span>TICKET = {client, server, start_time, lifetime, K_session}K_server</span></b></p><p><span>　　在Kerberos V5中，KDC_REPLY是这样的:</span></p><p><span>　　</span><b style="font-size:14px"><span>KDC_REPLY = TICKET, {client, server, K_session}K_user</span></b></p><p><span>　　当然，Kerberos V5还有许多新特征，用户可以在其他网络安全的使用票；或者，用户还可以将认证步骤转给服务器，这样服务器可以成为用户的代理。其他新特性，如用更安全的加密算法(如三重DES)代替DES算法。如果读者想知道V4与V5更多的变化细节，请移步</span><a href="ftp://athena-dist.mit.edu/pub/kerberos/doc/krb_evol.PS"><span>Kerberos认证系统发展史</span></a><span>，作者是</span><a href="http://clifford.neuman.name/"><span>Cliff Neumann </span></a><span>和</span><a href="https://web.mit.edu/tytso/www/home.html"><span>Theodore Ts&#39;o</span></a></p><p><span>　　我希望读者能满意这篇对话，祝君在未来的探索中更上一层楼。</span></p><p><span>　　Theodore Ts&#39;o，1997年2月</span></p></div>
+</body>
+</html>
